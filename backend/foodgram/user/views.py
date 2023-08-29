@@ -1,58 +1,48 @@
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from rest_framework import mixins, viewsets
 
-# from rest_framework.decorators import action, api_view
-# from rest_framework.response import Response
-# from rest_framework import status, permissions
-# from rest_framework import mixins, viewsets
-
-# from django.contrib.auth import get_user_model
-# from django.shortcuts import get_object_or_404
-
-
-# from .serializers import UserSerializer, UserCreateSerializer, FollowSerializer
-# from .models import Follow
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 
-# User = get_user_model()
+from .serializers import FollowListSerializer, FollowCreateDestroySerializer
+from .models import Follow
 
 
-# class FollowViewSet(mixins.ListModelMixin,
-#                     viewsets.GenericViewSet):
-#     """
-#     Вьюсет для работы с эндпоинтом users/subscriptions/
-#     """
-#     serializer_class = FollowSerializer
-#     queryset = User.objects.all()
-#     permission_classes = (permissions.IsAuthenticated,)
+User = get_user_model()
 
 
-# class UserViewSet(
-#         mixins.CreateModelMixin,
-#         mixins.ListModelMixin,
-#         mixins.RetrieveModelMixin,
-#         viewsets.GenericViewSet
-#         ):
-#     """
-#     Вьюсет для работы с эндпоинтом users/
-#     """
+@api_view(["POST", "DELETE"])
+def create_destroy_view(request, user_id):
+    """
+    Функция создания и удаления объекта 'Подписка'.
+    """
+    request.data["author"] = user_id
+    request.data["follower"] = request.user.id
 
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
+    if request.method == "POST":
+        serializer = FollowCreateDestroySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#     def get_serializer_class(self):
-#         if self.action == 'create':
-#             return UserCreateSerializer
-#         return UserSerializer
+    author = get_object_or_404(User, pk=user_id)
+    instance = get_object_or_404(Follow, author=author, follower=request.user)
+    instance.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
-#     @action(
-#         methods=("get",),
-#         detail=False,
-#         url_path="me",
-#         permission_classes=(permissions.IsAuthenticated,),
-#     )
-#     def user_detail_view(self, request):
-#         """
-#         Функция для работы с эндпоинтом user/me/.
-#         """
-#         user_data = get_object_or_404(User, pk=request.user.pk)
-#         serializer = UserSerializer(user_data, many=False)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class FollowListViewSet(mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    """
+    Вьюсет для отображения списка подписок.
+    """
+
+    serializer_class = FollowListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return Follow.objects.filter(follower=self.request.user)

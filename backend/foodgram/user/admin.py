@@ -1,11 +1,12 @@
 from django.contrib import admin
 
-from .models import CustomUser
+from .models import CustomUser, Follow
 
 
 class UserAdmin(admin.ModelAdmin):
     """
-    для модели пользователей добавить фильтр
+    Конфигурация модели User для админки:
+    добавлены фильтры
     списка по email и имени пользователя;
     """
 
@@ -13,3 +14,4 @@ class UserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CustomUser, UserAdmin)
+admin.site.register(Follow)

@@ -1,7 +1,9 @@
 import re
 from rest_framework import serializers
-
+from django.forms import ValidationError
 from django.contrib.auth import get_user_model
+
+from .models import Follow
 
 
 User = get_user_model()
@@ -14,12 +16,48 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "pk", "username", "first_name", "last_name", "is_subscribed",)
+        fields = ("email", "pk", "username", "first_name", "last_name", "is_subscribed", "recipes")
+
+
+class FollowCreateDestroySerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для создания и удаления объекта 'Подписка'.
+    """
+
+    class Meta:
+        model = Follow
+        fields = ("author", "follower")
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=[
+                    "author",
+                    "follower",
+                ],
+            )
+        ]
+
+    def validate(self, data):
+        if data["author"] == data["follower"]:
+            raise ValidationError(message="Нельзя подписаться на самого себя")
+        return data
+
+
+class FollowListSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для отображения подписок текущего пользователя.
+    """
+
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("author", )
 
 
 class UserCreateSerializer(serializers.Serializer):
     """
-    Сериализатор для создания нового User.
+    Сериализатор для создания нового пользователя.
     """
 
     username = serializers.CharField(required=True, max_length=150)

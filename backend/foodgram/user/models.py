@@ -8,6 +8,36 @@ CHOICES = (
 )
 
 
+class Follow(models.Model):
+    """
+    Описывает поля объекта 'Подписка'.
+    """
+
+    author = models.ForeignKey(
+        "CustomUser",
+        on_delete=models.CASCADE,
+        related_name="author",
+    )
+
+    follower = models.ForeignKey(
+        "CustomUser",
+        on_delete=models.CASCADE,
+        related_name="follower",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "follower"], name="uq_author_follower"
+            )
+        ]
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+
+    def __str__(self) -> str:
+        return self.author.username
+
+
 class CustomUser(AbstractUser):
     """
     Дополняет базовую абстрактную модель пользователя.
