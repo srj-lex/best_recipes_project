@@ -1,7 +1,9 @@
 import re
+
 from rest_framework import serializers
-from django.forms import ValidationError
+
 from django.contrib.auth import get_user_model
+from django.forms import ValidationError
 
 from .models import Follow
 
@@ -14,9 +16,26 @@ class UserSerializer(serializers.ModelSerializer):
     Сериализатор для модели CustomUser.
     """
 
+    is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("email", "pk", "username", "first_name", "last_name", "is_subscribed", "recipes")
+        fields = (
+            "email",
+            "pk",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+        )
+
+    def get_is_subscribed(self, obj):
+        current_user = self.context.get("request").user
+        if current_user.is_anonymous or current_user == obj:
+            return False
+        return Follow.objects.filter(
+            author=current_user, follower=obj
+        ).exists()
 
 
 class FollowCreateDestroySerializer(serializers.ModelSerializer):
@@ -52,7 +71,7 @@ class FollowListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ("author", )
+        fields = ("author",)
 
 
 class UserCreateSerializer(serializers.Serializer):
@@ -74,9 +93,10 @@ class UserCreateSerializer(serializers.Serializer):
         password = validated_data["password"]
 
         user, _ = User.objects.get_or_create(
-            email=email, username=username,
+            email=email,
+            username=username,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
         )
         user.set_password(password)
         user.save()
@@ -94,11 +114,11 @@ class UserCreateSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
-        username = data['username']
+        username = data["username"]
 
         if User.objects.filter(username=username).exists():
             raise serializers.ValidationError(
-                f'Пользователь с таким username — {username} — уже существует.'
+                f"Пользователь с таким username — {username} — уже существует."
             )
 
         return data

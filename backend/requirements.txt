@@ -1,6 +1,9 @@
+gunicorn==20.1.0
 Django==3.2.16
 djangorestframework==3.12.4
+django-filter==23.2
+djoser==2.2.0
 black==23.7.0
 isort==5.12.0
 Pillow==10.0.0
-djoser==2.2.0
+psycopg2-binary==2.9.3

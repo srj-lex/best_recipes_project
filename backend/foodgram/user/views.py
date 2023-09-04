@@ -1,14 +1,12 @@
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status, permissions
-from rest_framework import mixins, viewsets
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-
-from .serializers import FollowListSerializer, FollowCreateDestroySerializer
 from .models import Follow
+from .serializers import FollowCreateDestroySerializer, FollowListSerializer
 
 
 User = get_user_model()
@@ -35,8 +33,7 @@ def create_destroy_view(request, user_id):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FollowListViewSet(mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
+class FollowListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     Вьюсет для отображения списка подписок.
     """

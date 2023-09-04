@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-
-from .models import Ingridient, Tag, Recipe
+from .models import Ingridient, Recipe, Tag
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -13,7 +12,7 @@ class RecipeAdmin(admin.ModelAdmin):
     """
 
     list_display = ("name", "author")
-    list_filter = ("author", "name", "tag")
+    list_filter = ("author", "name", "tags")
 
 
 class IngridientAdmin(admin.ModelAdmin):
@@ -23,7 +22,7 @@ class IngridientAdmin(admin.ModelAdmin):
         - добавить фильтр по названию. X
     """
 
-    list_filter = ("name", )
+    list_filter = ("name",)
 
 
 admin.site.register(Ingridient, IngridientAdmin)
