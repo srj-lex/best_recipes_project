@@ -9,12 +9,14 @@ class TagViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+    permission_classes = (permissions.AllowAny, )
 
 
 class IngridientViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Ingridient.objects.all()
     serializer_class = IngridientSerializer
     pagination_class = None
+    permission_classes = (permissions.AllowAny, )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

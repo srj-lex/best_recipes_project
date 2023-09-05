@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'Импорт данных из csv файлов'
 
     def load_ingridients(self):
-        with open('../../data/ingredients.csv', encoding='utf8') as file:
+        with open('../data/ingredients.csv', encoding='utf8') as file:
             data = csv.reader(file)
             for row in data:
                 Ingridient.objects.create(
