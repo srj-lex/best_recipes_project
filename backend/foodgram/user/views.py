@@ -7,14 +7,13 @@ from django.shortcuts import get_object_or_404
 
 from .models import Follow
 from .serializers import FollowCreateDestroySerializer, FollowListSerializer
-from .paginations import UserListPagination
 
 
 User = get_user_model()
 
 
 @api_view(["POST", "DELETE"])
-def create_destroy_view(request, user_id):
+def create_destroy_follow_view(request, user_id):
     """
     Функция создания и удаления объекта 'Подписка'.
     """
@@ -41,7 +40,6 @@ class FollowListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     serializer_class = FollowListSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = UserListPagination
 
     def get_queryset(self):
         return Follow.objects.filter(follower=self.request.user)
