@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Recipe, Tag, Ingredient, IngredientForRecipe, Favorite, ShoppingCart
+from .models import (
+    Favorite,
+    Ingredient,
+    IngredientForRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 
 
 class IngredientForRecipeInline(admin.TabularInline):
@@ -10,10 +17,7 @@ class IngredientForRecipeInline(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     """
-    для модели рецептов:
-        - в списке рецептов вывести название и имя автора рецепта; X
-        - добавить фильтры по автору, названию рецепта, тегам; X
-        - на странице рецепта вывести общее число добавлений этого рецепта в избранное; ?
+    Настройки админки для модели рецептов.
     """
 
     list_display = ("name", "author")
@@ -23,9 +27,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 class IngredientAdmin(admin.ModelAdmin):
     """
-    для модели ингредиентов:
-        - в список вывести название ингредиента и единицы измерения; X
-        - добавить фильтр по названию. X
+    Настройки админки для модели ингредиентов.
     """
 
     list_filter = ("name",)

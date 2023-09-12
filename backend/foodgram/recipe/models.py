@@ -62,11 +62,9 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name="Название", max_length=150, blank=False
     )
-    # image = models.ImageField(
-    #     verbose_name="Изображение",
-    #     upload_to=None,
-    #     default=None
-    #     )
+    image = models.ImageField(
+        verbose_name="Изображение", upload_to=None, default=None
+    )
     text = models.TextField(
         verbose_name="Описание", max_length=500, blank=False
     )
@@ -80,8 +78,14 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления", blank=False
     )
-    is_favorited = models.ManyToManyField("Favorite", verbose_name="Избранное", related_name="is_favorite")
-    is_in_shopping_cart = models.ManyToManyField("ShoppingCart", verbose_name="Корзина", related_name="is_in_shopping_cart")
+    is_favorited = models.ManyToManyField(
+        "Favorite", verbose_name="Избранное", related_name="is_favorite"
+    )
+    is_in_shopping_cart = models.ManyToManyField(
+        "ShoppingCart",
+        verbose_name="Корзина",
+        related_name="is_in_shopping_cart",
+    )
 
     class Meta:
         verbose_name = "Рецепт"

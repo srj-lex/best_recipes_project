@@ -6,7 +6,14 @@ from django.core.files.base import ContentFile
 
 from user.serializers import UserSerializer
 
-from .models import Ingredient, Recipe, Tag, IngredientForRecipe, Favorite, ShoppingCart
+from .models import (
+    Favorite,
+    Ingredient,
+    IngredientForRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -71,7 +78,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientsForRecipeSerializer(
         many=True, source="ingredientforrecipe_set"
     )
-    # image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=False, allow_null=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -85,7 +92,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_favorited",
             "is_in_shopping_cart",
             "name",
-            # "image",
+            "image",
             "text",
             "cooking_time",
         )
@@ -94,15 +101,15 @@ class RecipeSerializer(serializers.ModelSerializer):
         current_user = self.context.get("request").user
         if current_user.is_anonymous:
             return False
-        return Favorite.objects.filter(
-            recipe=obj, user=current_user).exists()
+        return Favorite.objects.filter(recipe=obj, user=current_user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         current_user = self.context.get("request").user
         if current_user.is_anonymous:
             return False
         return ShoppingCart.objects.filter(
-            recipe=obj, user=current_user).exists()
+            recipe=obj, user=current_user
+        ).exists()
 
 
 class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
@@ -127,7 +134,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = IngredientForRecipeCreateSerializer(
         many=True,
     )
-    # image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Recipe
@@ -135,7 +142,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "tags",
             "ingredients",
             "name",
-            # "image",
+            "image",
             "text",
             "cooking_time",
         )
@@ -164,7 +171,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.cooking_time = validated_data.get(
             "cooking_time", instance.cooking_time
         )
-        # instance.image = validated_data.get('image', instance.image)
+        instance.image = validated_data.get("image", instance.image)
         if "tags" in validated_data:
             tag = validated_data.pop("tags")
             instance.tags.set(tag)
@@ -191,16 +198,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
         validators.UniqueTogetherValidator(
             queryset=Favorite.objects.all(),
             fields=("user", "recipe"),
-            message="Рецепт уже добвален в избранное!"
+            message="Рецепт уже добвален в избранное!",
         )
     ]
 
     class Meta:
         model = Favorite
-        fields = (
-            "user",
-            "recipe"
-        )
+        fields = ("user", "recipe")
 
 
 class MinRecipeSerializer(serializers.ModelSerializer):
@@ -213,8 +217,8 @@ class MinRecipeSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            # "image",
-            "cooking_time"
+            "image",
+            "cooking_time",
         )
 
 
@@ -227,13 +231,10 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         validators.UniqueTogetherValidator(
             queryset=ShoppingCart.objects.all(),
             fields=("user", "recipe"),
-            message="Рецепт уже добвален в корзину!"
+            message="Рецепт уже добвален в корзину!",
         )
     ]
 
     class Meta:
         model = ShoppingCart
-        fields = (
-            "user",
-            "recipe"
-        )
+        fields = ("user", "recipe")
