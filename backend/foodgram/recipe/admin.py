@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import Ingridient, Recipe, Tag
+from .models import Recipe, Tag, Ingredient, IngredientForRecipe, Favorite, ShoppingCart
+
+
+class IngredientForRecipeInline(admin.TabularInline):
+    model = IngredientForRecipe
+    extra = 1
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -13,18 +18,22 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ("name", "author")
     list_filter = ("author", "name", "tags")
+    inlines = (IngredientForRecipeInline,)
 
 
-class IngridientAdmin(admin.ModelAdmin):
+class IngredientAdmin(admin.ModelAdmin):
     """
     для модели ингредиентов:
-        - в список вывести название ингредиента и единицы измерения; ?
+        - в список вывести название ингредиента и единицы измерения; X
         - добавить фильтр по названию. X
     """
 
     list_filter = ("name",)
+    list_display = ("name", "measurement_unit")
 
 
-admin.site.register(Ingridient, IngridientAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Favorite)
+admin.site.register(ShoppingCart)

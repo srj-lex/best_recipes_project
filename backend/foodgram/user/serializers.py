@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "email",
-            "pk",
+            "id",
             "username",
             "first_name",
             "last_name",
@@ -30,12 +30,14 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        current_user = self.context.get("request").user
-        if current_user.is_anonymous or current_user == obj:
-            return False
-        return Follow.objects.filter(
-            author=current_user, follower=obj
-        ).exists()
+        if self.context:
+            current_user = self.context.get("request").user
+            if current_user.is_anonymous or current_user == obj:
+                return False
+            return Follow.objects.filter(
+                author=current_user, follower=obj
+            ).exists()
+        return False
 
 
 class FollowCreateDestroySerializer(serializers.ModelSerializer):
@@ -122,3 +124,7 @@ class UserCreateSerializer(serializers.Serializer):
             )
 
         return data
+
+    def to_representation(self, instance):
+        serializer = UserSerializer(instance)
+        return serializer.data
