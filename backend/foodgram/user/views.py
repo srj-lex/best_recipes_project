@@ -1,6 +1,6 @@
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -12,25 +12,31 @@ from .serializers import FollowCreateDestroySerializer, FollowListSerializer
 User = get_user_model()
 
 
-@api_view(["POST", "DELETE"])
-def create_destroy_follow_view(request, user_id):
+class FollowAPI(APIView):
     """
-    Функция создания и удаления объекта 'Подписка'.
+    Класс создания и удаления объекта 'Подписка'.
     """
-    request.data["author"] = user_id
-    request.data["follower"] = request.user.id
 
-    if request.method == "POST":
+    def post(self, request, user_id):
+        request.data["author"] = user_id
+        request.data["follower"] = request.user.id
+
         serializer = FollowCreateDestroySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    author = get_object_or_404(User, pk=user_id)
-    instance = get_object_or_404(Follow, author=author, follower=request.user)
-    instance.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, user_id):
+        request.data["author"] = user_id
+        request.data["follower"] = request.user.id
+
+        author = get_object_or_404(User, pk=user_id)
+        instance = get_object_or_404(
+            Follow, author=author, follower=request.user
+        )
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FollowListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

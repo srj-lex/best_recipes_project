@@ -1,17 +1,19 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.getenv("SECRET_KEY", "secret_key")
 
-SECRET_KEY = (
-    "django-insecure-_oimsm3+%ncs(ri@3n%0@et%36rsnvl60^!ep$=zw0widwjyzq"
-)
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-DEBUG = True
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 
 
 INSTALLED_APPS = [
@@ -113,6 +115,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PAGINATION_CLASS": "user.paginations.UserListPagination",
+    "PAGE_SIZE": 6,
 }
 
 DJOSER = {

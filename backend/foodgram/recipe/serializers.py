@@ -76,7 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     author = UserSerializer()
     ingredients = IngredientsForRecipeSerializer(
-        many=True, source="ingredientforrecipe_set"
+        many=True, source="recipe_m2m"
     )
     image = Base64ImageField(required=False, allow_null=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -98,17 +98,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        current_user = self.context.get("request").user
-        if current_user.is_anonymous:
+        request = self.context.get("request")
+        if request is None or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(recipe=obj, user=current_user).exists()
+        return Favorite.objects.filter(recipe=obj, user=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        current_user = self.context.get("request").user
-        if current_user.is_anonymous:
+        request = self.context.get("request")
+        if request is None or request.user.is_anonymous:
             return False
         return ShoppingCart.objects.filter(
-            recipe=obj, user=current_user
+            recipe=obj, user=request.user
         ).exists()
 
 
@@ -166,12 +166,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get("name", instance.name)
-        instance.text = validated_data.get("text", instance.text)
-        instance.cooking_time = validated_data.get(
-            "cooking_time", instance.cooking_time
-        )
-        instance.image = validated_data.get("image", instance.image)
         if "tags" in validated_data:
             tag = validated_data.pop("tags")
             instance.tags.set(tag)
@@ -184,9 +178,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     ingredient=ingredient["ingredients"],
                     defaults={"amount": ingredient["amount"]},
                 )
+        return super().update(instance, validated_data)
 
-        instance.save()
-        return instance
+    def validate(self, attrs):
+        return super().validate(attrs)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -194,17 +189,17 @@ class FavoriteSerializer(serializers.ModelSerializer):
     Сериализатор добавления рецептов в избранное.
     """
 
-    validators = [
-        validators.UniqueTogetherValidator(
-            queryset=Favorite.objects.all(),
-            fields=("user", "recipe"),
-            message="Рецепт уже добвален в избранное!",
-        )
-    ]
-
     class Meta:
         model = Favorite
         fields = ("user", "recipe")
+
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже добвален в избранное!",
+            )
+        ]
 
 
 class MinRecipeSerializer(serializers.ModelSerializer):
@@ -227,14 +222,14 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     Сериализатор добавления ингридиентов из рецепта в корзину.
     """
 
-    validators = [
-        validators.UniqueTogetherValidator(
-            queryset=ShoppingCart.objects.all(),
-            fields=("user", "recipe"),
-            message="Рецепт уже добвален в корзину!",
-        )
-    ]
-
     class Meta:
         model = ShoppingCart
         fields = ("user", "recipe")
+
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=ShoppingCart.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже добвален в корзину!",
+            )
+        ]
