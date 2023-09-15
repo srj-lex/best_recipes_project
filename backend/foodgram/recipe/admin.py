@@ -1,4 +1,8 @@
+from typing import Any
+
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from .models import (
     Favorite,
@@ -23,6 +27,11 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ("name", "author")
     list_filter = ("author", "name", "tags")
     inlines = (IngredientForRecipeInline,)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return Recipe.objects.select_related("author").prefetch_related(
+            "tags", "ingredients"
+        )
 
 
 class IngredientAdmin(admin.ModelAdmin):

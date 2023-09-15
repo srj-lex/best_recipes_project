@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -63,28 +64,23 @@ class Recipe(models.Model):
         verbose_name="Название", max_length=150, blank=False
     )
     image = models.ImageField(
-        verbose_name="Изображение", upload_to=None, default=None
+        verbose_name="Изображение", upload_to=None, default=None, null=True
     )
     text = models.TextField(
         verbose_name="Описание", max_length=500, blank=False
     )
-    tags = models.ManyToManyField(Tag, verbose_name="Тэг")
+    tags = models.ManyToManyField(Tag, verbose_name="Тэг", related_name="tag")
     ingredients = models.ManyToManyField(
         Ingredient,
         through="IngredientForRecipe",
         through_fields=("recipe", "ingredient"),
+        related_name="ingredient",
         verbose_name="Ингредиент",
     )
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name="Время приготовления", blank=False
-    )
-    is_favorited = models.ManyToManyField(
-        "Favorite", verbose_name="Избранное", related_name="is_favorite"
-    )
-    is_in_shopping_cart = models.ManyToManyField(
-        "ShoppingCart",
-        verbose_name="Корзина",
-        related_name="is_in_shopping_cart",
+        verbose_name="Время приготовления",
+        blank=False,
+        validators=(MinValueValidator(1), MaxValueValidator(180)),
     )
 
     class Meta:
@@ -100,9 +96,22 @@ class IngredientForRecipe(models.Model):
     Таблица отношения М2М для Рецепта и Ингредиента.
     """
 
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField()
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="recipe_m2m",
+        verbose_name="Рецепт",
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name="ingredient_m2m",
+        verbose_name="Ингредиент",
+    )
+    amount = models.PositiveIntegerField(
+        validators=(MinValueValidator(1), MaxValueValidator(2000)),
+        verbose_name="Количество",
+    )
 
     def __str__(self) -> str:
         return f"{self.recipe} - {self.ingredient} - {self.amount}"
@@ -114,8 +123,18 @@ class Favorite(models.Model):
     пользователем рецепта в избранное.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="user_favorite",
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="recipe_favorite",
+        verbose_name="Рецепт",
+    )
 
     class Meta:
         constraints = [
@@ -137,8 +156,18 @@ class ShoppingCart(models.Model):
     рецепта в корзину пользователя.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="user_shopcart",
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="recipe_shopcart",
+        verbose_name="Рецепт",
+    )
 
     class Meta:
         constraints = [

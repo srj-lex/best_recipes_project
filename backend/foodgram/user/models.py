@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .validators import validate_username
+
 
 class Follow(models.Model):
     """
@@ -36,6 +38,14 @@ class CustomUser(AbstractUser):
     """
     Дополняет базовую абстрактную модель пользователя.
     """
+
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        blank=False,
+        validators=(validate_username,),
+        verbose_name="Псевдоним пользователя",
+    )
 
     email = models.EmailField(
         verbose_name="Электронная почта", max_length=254, blank=False

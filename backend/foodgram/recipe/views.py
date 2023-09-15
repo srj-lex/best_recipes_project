@@ -6,8 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db.models import Sum
+from django.db.models.query import QuerySet
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 
 from user.paginations import UserListPagination
 from user.permissions import RecipeUserPermission
@@ -71,8 +71,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         recipes = Recipe.objects.prefetch_related(
-            "ingredientforrecipe_set__ingredient", "tags"
-        ).all()
+            "recipe_m2m__ingredient", "tags"
+        ).select_related("author")
         return recipes
 
     def get_serializer_class(self, *args, **kwargs):
@@ -86,6 +86,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=("post", "delete"),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def favorite(self, request, pk):
         """
@@ -98,7 +99,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == "POST":
             serializer.is_valid(raise_exception=True)
-            Favorite.objects.get_or_create(**serializer.validated_data)
+            serializer.save()
             return Response(
                 status=status.HTTP_201_CREATED,
                 data=MinRecipeSerializer(
@@ -106,8 +107,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ).data,
             )
 
-        recipe = get_object_or_404(Recipe, pk=pk)
-        obj = Favorite.objects.filter(user=request.user, recipe=recipe)
+        obj = Favorite.objects.filter(user=request.user, recipe=pk)
         if not obj:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
@@ -120,6 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=("post", "delete"),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def shopping_cart(self, request, pk):
         """
@@ -132,7 +133,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == "POST":
             serializer.is_valid(raise_exception=True)
-            ShoppingCart.objects.get_or_create(**serializer.validated_data)
+            serializer.save()
             return Response(
                 status=status.HTTP_201_CREATED,
                 data=MinRecipeSerializer(
@@ -140,8 +141,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ).data,
             )
 
-        recipe = get_object_or_404(Recipe, pk=pk)
-        obj = ShoppingCart.objects.filter(user=request.user, recipe=recipe)
+        obj = ShoppingCart.objects.filter(user=request.user, recipe=pk)
         if not obj:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
@@ -151,16 +151,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=("get",))
+    @classmethod
+    def create_shopping_list(cls, cart_obj: QuerySet) -> HttpResponse:
+        response = HttpResponse(
+            content_type="text/csv", status=status.HTTP_200_OK
+        )
+        columns_name = ("название", "количество", "единица измерения")
+        writer = csv.writer(response)
+        writer.writerow(columns_name)
+        for row in cart_obj:
+            writer.writerow(row)
+
+        return response
+
+    @action(
+        detail=False,
+        methods=("get",),
+        permission_classes=(permissions.IsAuthenticated,),
+    )
     def download_shopping_cart(self, request):
         """
         Обрабатывает выгрузку содержимого корзины в файл.
         """
-        current_user = request.user
-
-        res = (
+        cart_obj = (
             IngredientForRecipe.objects.filter(
-                recipe__shoppingcart__user=current_user
+                recipe__recipe_shopcart__user=request.user
             )
             .values("ingredient")
             .annotate(total_amount=Sum("amount"))
@@ -171,14 +186,4 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         )
 
-        response = HttpResponse(
-            content_type="text/csv", status=status.HTTP_200_OK
-        )
-        data = list(res)
-        columns_name = ("название", "количество", "единица измерения")
-        writer = csv.writer(response)
-        writer.writerow(columns_name)
-        for row in data:
-            writer.writerow(row)
-
-        return response
+        return self.create_shopping_list(cart_obj)

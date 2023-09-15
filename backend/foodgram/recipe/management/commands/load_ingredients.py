@@ -10,7 +10,6 @@ class Command(BaseCommand):
 
     def load_ingredients(self):
         if Ingredient.objects.exists():
-            print('Данные для Ingredient уже загружены')
             return
 
         with open('../data/ingredients.csv', encoding='utf8') as file:
@@ -20,7 +19,6 @@ class Command(BaseCommand):
                     name=row[0],
                     measurement_unit=row[-1]
                 )
-        print('Ингредиенты загружены')
 
     def handle(self, *args, **kwargs):
         self.load_ingredients()
