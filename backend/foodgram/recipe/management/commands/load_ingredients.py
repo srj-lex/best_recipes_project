@@ -6,7 +6,7 @@ from recipe.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Импорт данных из csv файлов'
+    help = 'Импорт ингреиаентов из csv файла.'
 
     def load_ingredients(self):
         if Ingredient.objects.exists():

@@ -107,14 +107,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ).data,
             )
 
-        obj = Favorite.objects.filter(user=request.user, recipe=pk)
-        if not obj:
+        obj = Favorite.objects.filter(user=request.user, recipe=pk).delete()
+        if obj[0] == 0:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={"errors": "Такого рецепта нет в избранном!"},
             )
 
-        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -141,14 +140,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ).data,
             )
 
-        obj = ShoppingCart.objects.filter(user=request.user, recipe=pk)
-        if not obj:
+        obj = ShoppingCart.objects.filter(user=request.user, recipe=pk).delete()
+        if obj[0] == 0:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={"errors": "Такого рецепта нет в корзине!"},
             )
 
-        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @classmethod

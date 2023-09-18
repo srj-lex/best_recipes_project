@@ -3,11 +3,16 @@ from typing import Any
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.db.models.query import QuerySet
+from django.contrib.auth import get_user_model
 from django.http.request import HttpRequest
 
-from .models import CustomUser, Follow
+from .models import Follow
 
 
+User = get_user_model()
+
+
+@admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     """
     Конфигурация модели Follow для админки.
@@ -17,6 +22,7 @@ class FollowAdmin(admin.ModelAdmin):
         return Follow.objects.select_related("author", "follower")
 
 
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
     """
     Конфигурация модели CustomUser для админки:
@@ -25,7 +31,3 @@ class CustomUserAdmin(UserAdmin):
     """
 
     list_filter = ("email", "username")
-
-
-admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Follow)

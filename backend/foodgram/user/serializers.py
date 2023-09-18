@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 
 from .models import Follow
+from recipe.models import Recipe
 
 
 User = get_user_model()
@@ -27,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
+            "recipes"
         )
 
     def get_is_subscribed(self, obj):
@@ -64,16 +66,56 @@ class FollowCreateDestroySerializer(serializers.ModelSerializer):
         return data
 
 
+class MinRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор рецепта с минимальным колчичеством полей.
+    """
+
+    class Meta:
+        model = Recipe
+        fields = (
+            "id",
+            "name",
+            "image",
+            "cooking_time",
+        )
+
+
 class FollowListSerializer(serializers.ModelSerializer):
     """
     Сериализатор для отображения подписок текущего пользователя.
     """
 
-    author = UserSerializer(read_only=True)
+    email = serializers.EmailField(source="author.email") 
+    id = serializers.IntegerField(source="author.id")
+    username = serializers.CharField(source="author.username")
+    first_name = serializers.CharField(source="author.first_name")
+    last_name = serializers.CharField(source="author.last_name")
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Follow
-        fields = ("author",)
+        fields = ("email", "id", "username", "first_name", "last_name", "is_subscribed", "recipes", "recipes_count")
+
+    def get_is_subscribed(self, obj):
+        if self.context:
+            current_user = self.context.get("request").user
+            if current_user.is_anonymous or current_user == obj.author:
+                return False
+            return Follow.objects.filter(
+                follower=current_user,
+            ).exists()
+        return False
+
+    def get_recipes(self, obj):
+        recipes = Recipe.objects.filter(author=obj.author)
+        serializer = MinRecipeSerializer(recipes, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.author).count()
 
 
 class UserCreateSerializer(serializers.Serializer):

@@ -19,6 +19,7 @@ class IngredientForRecipeInline(admin.TabularInline):
     extra = 1
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """
     Настройки админки для модели рецептов.
@@ -34,6 +35,7 @@ class RecipeAdmin(admin.ModelAdmin):
         )
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """
     Настройки админки для модели ингредиентов.
@@ -43,8 +45,6 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ("name", "measurement_unit")
 
 
-admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag)
-admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Favorite)
 admin.site.register(ShoppingCart)
