@@ -5,9 +5,10 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
+from user.paginations import UserListPagination
+
 from .models import Follow
 from .serializers import FollowCreateDestroySerializer, FollowListSerializer
-from user.paginations import UserListPagination
 
 
 User = get_user_model()

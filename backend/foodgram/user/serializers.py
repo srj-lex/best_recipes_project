@@ -5,8 +5,9 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 
-from .models import Follow
 from recipe.models import Recipe
+
+from .models import Follow
 
 
 User = get_user_model()
@@ -28,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipes"
+            "recipes",
         )
 
     def get_is_subscribed(self, obj):
@@ -86,7 +87,7 @@ class FollowListSerializer(serializers.ModelSerializer):
     Сериализатор для отображения подписок текущего пользователя.
     """
 
-    email = serializers.EmailField(source="author.email") 
+    email = serializers.EmailField(source="author.email")
     id = serializers.IntegerField(source="author.id")
     username = serializers.CharField(source="author.username")
     first_name = serializers.CharField(source="author.first_name")
@@ -97,7 +98,16 @@ class FollowListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ("email", "id", "username", "first_name", "last_name", "is_subscribed", "recipes", "recipes_count")
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes",
+            "recipes_count",
+        )
 
     def get_is_subscribed(self, obj):
         if self.context:

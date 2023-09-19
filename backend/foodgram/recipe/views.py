@@ -1,4 +1,5 @@
 import csv
+import io
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -140,7 +141,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ).data,
             )
 
-        obj = ShoppingCart.objects.filter(user=request.user, recipe=pk).delete()
+        obj = ShoppingCart.objects.filter(
+            user=request.user, recipe=pk
+        ).delete()
         if obj[0] == 0:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
@@ -150,17 +153,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @classmethod
-    def create_shopping_list(cls, cart_obj: QuerySet) -> HttpResponse:
-        response = HttpResponse(
-            content_type="text/csv", status=status.HTTP_200_OK
-        )
+    def create_buffer(cls, cart_obj: QuerySet) -> io.StringIO:
+        "Создает заполненный IO буфер со списком покупок."
+        buffer = io.StringIO()
         columns_name = ("название", "количество", "единица измерения")
-        writer = csv.writer(response)
+        writer = csv.writer(buffer)
         writer.writerow(columns_name)
         for row in cart_obj:
             writer.writerow(row)
-
-        return response
+        buffer.seek(0)
+        return buffer
 
     @action(
         detail=False,
@@ -169,7 +171,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         """
-        Обрабатывает выгрузку содержимого корзины в файл.
+        Запрашивает информацию из базы и формирует http-response.
         """
         cart_obj = (
             IngredientForRecipe.objects.filter(
@@ -184,4 +186,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         )
 
-        return self.create_shopping_list(cart_obj)
+        data = self.create_buffer(cart_obj)
+        return HttpResponse(content_type="text/csv", content=data)
