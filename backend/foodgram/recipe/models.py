@@ -69,7 +69,9 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name="Описание", max_length=500, blank=False
     )
-    tags = models.ManyToManyField(Tag, verbose_name="Тэг", related_name="tag")
+    tags = models.ManyToManyField(
+        Tag, verbose_name="Тэг", related_name="recipes"
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through="IngredientForRecipe",
@@ -86,6 +88,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        ordering = ["-id"]
 
     def __str__(self):
         return self.name

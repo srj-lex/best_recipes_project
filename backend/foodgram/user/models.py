@@ -48,7 +48,10 @@ class CustomUser(AbstractUser):
     )
 
     email = models.EmailField(
-        verbose_name="Электронная почта", max_length=254, blank=False
+        unique=True,
+        verbose_name="Электронная почта",
+        max_length=254,
+        blank=False,
     )
     first_name = models.CharField(
         verbose_name="Имя", max_length=150, blank=False
@@ -66,3 +69,6 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []

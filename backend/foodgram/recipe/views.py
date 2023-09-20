@@ -72,7 +72,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         recipes = Recipe.objects.prefetch_related(
-            "recipe_m2m__ingredient", "tags"
+            "ingredients", "tags"
         ).select_related("author")
         return recipes
 
@@ -186,5 +186,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         )
 
-        data = self.create_buffer(cart_obj)
-        return HttpResponse(content_type="text/csv", content=data)
+        return HttpResponse(
+            content_type="text/csv", content=self.create_buffer(cart_obj)
+        )
