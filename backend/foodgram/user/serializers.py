@@ -29,7 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipes",
         )
 
     def get_is_subscribed(self, obj):

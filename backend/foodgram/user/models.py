@@ -63,12 +63,12 @@ class CustomUser(AbstractUser):
         verbose_name="Пароль", max_length=150, blank=False
     )
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
 
     def __str__(self):
         return self.username
-
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []

@@ -73,6 +73,9 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_filter = ("user", "recipe")
     list_display = ("user", "recipe")
 
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).select_related("user", "recipe")
+
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
@@ -82,3 +85,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
     list_filter = ("user", "recipe")
     list_display = ("user", "recipe")
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).select_related("user", "recipe")

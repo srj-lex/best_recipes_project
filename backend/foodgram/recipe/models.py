@@ -76,7 +76,7 @@ class Recipe(models.Model):
         Ingredient,
         through="IngredientForRecipe",
         through_fields=("recipe", "ingredient"),
-        related_name="ingredient",
+        related_name="recipes",
         verbose_name="Ингредиент",
     )
     cooking_time = models.PositiveSmallIntegerField(
