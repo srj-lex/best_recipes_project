@@ -14,7 +14,7 @@ services:
     restart: always
 
   backend:
-    build: ../backend/
+    image: srjlex/foodgram_backend:v2
     env_file: ../.env
     volumes:
       - static:/backend/foodgram/collected_static/
@@ -22,11 +22,10 @@ services:
     depends_on:
       - frontend
       - db
+    restart: always
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: srjlex/foodgram_frontend:v1
     volumes:
       - ../frontend/:/app/result_build/
       

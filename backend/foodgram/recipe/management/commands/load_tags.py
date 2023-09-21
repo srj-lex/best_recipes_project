@@ -17,7 +17,8 @@ class Command(BaseCommand):
             for row in data:
                 Tag.objects.create(
                     name=row[0],
-                    measurement_unit=row[-1]
+                    color=row[1],
+                    slug=row[-1]
                 )
 
     def handle(self, *args, **kwargs):
