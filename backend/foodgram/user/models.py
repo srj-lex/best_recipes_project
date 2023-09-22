@@ -31,7 +31,7 @@ class Follow(models.Model):
         verbose_name_plural = "Подписки"
 
     def __str__(self) -> str:
-        return f"Автор - {self.author.username}, подписчик - {self.follower.username}"
+        return f"{self.follower.username} подписан на {self.author.username}"
 
 
 class CustomUser(AbstractUser):
