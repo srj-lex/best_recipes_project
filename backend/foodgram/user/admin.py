@@ -32,4 +32,4 @@ class CustomUserAdmin(UserAdmin):
     по email и имени пользователя;
     """
 
-    list_filter = ("email", "username")
+    search_fields = ("email", "username", "first_name", "last_name")

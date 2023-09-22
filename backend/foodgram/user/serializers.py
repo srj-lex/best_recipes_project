@@ -32,12 +32,11 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        if self.context:
-            current_user = self.context.get("request").user
-            if current_user.is_anonymous or current_user == obj:
-                return False
+        request = self.context.get("request")
+
+        if request and request.user.is_authenticated:
             return Follow.objects.filter(
-                author=current_user, follower=obj
+                author=obj, follower=request.user
             ).exists()
         return False
 
@@ -57,13 +56,20 @@ class FollowCreateDestroySerializer(serializers.ModelSerializer):
                     "author",
                     "follower",
                 ],
+                message="Вы уже подписаны на этого пользователя!",
             )
         ]
 
     def validate(self, data):
         if data["author"] == data["follower"]:
-            raise ValidationError(message="Нельзя подписаться на самого себя")
+            raise ValidationError(
+                message={"errors": "Нельзя подписаться на самого себя!"}
+            )
         return data
+
+    def to_representation(self, instance):
+        serializer = FollowListSerializer(instance)
+        return serializer.data
 
 
 class MinRecipeSerializer(serializers.ModelSerializer):
@@ -109,17 +115,17 @@ class FollowListSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        if self.context:
-            current_user = self.context.get("request").user
-            if current_user.is_anonymous or current_user == obj.author:
-                return False
-            return Follow.objects.filter(
-                follower=current_user,
-            ).exists()
-        return False
+        return True
 
     def get_recipes(self, obj):
-        recipes = Recipe.objects.filter(author=obj.author)
+        recipes_limit = self.context.get("recipes_limit")
+
+        if recipes_limit:
+            recipes = Recipe.objects.filter(author=obj.author)[:recipes_limit]
+            serializer = MinRecipeSerializer(recipes, many=True)
+            return serializer.data
+
+        recipes = Recipe.objects.filter(author=obj.author)[:recipes_limit]
         serializer = MinRecipeSerializer(recipes, many=True)
         return serializer.data
 

@@ -31,7 +31,7 @@ class Follow(models.Model):
         verbose_name_plural = "Подписки"
 
     def __str__(self) -> str:
-        return self.author.username
+        return f"Автор - {self.author.username}, подписчик - {self.follower.username}"
 
 
 class CustomUser(AbstractUser):
@@ -64,7 +64,9 @@ class CustomUser(AbstractUser):
     )
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username", ]
+    REQUIRED_FIELDS = [
+        "username",
+    ]
 
     class Meta:
         verbose_name = "Пользователь"

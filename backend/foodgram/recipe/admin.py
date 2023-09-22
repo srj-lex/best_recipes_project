@@ -29,6 +29,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ("name", "author")
     list_filter = ("author", "name", "tags")
+    search_fields = ("name",)
     inlines = (IngredientForRecipeInline,)
 
     @admin.display(description="Число добавлений в избранное")
@@ -50,7 +51,7 @@ class IngredientAdmin(admin.ModelAdmin):
     Настройки админки для модели ингредиентов.
     """
 
-    list_filter = ("name",)
+    search_fields = ("name",)
     list_display = ("name", "measurement_unit")
 
 
@@ -60,7 +61,7 @@ class TagAdmin(admin.ModelAdmin):
     Настройки админки для модели тегов.
     """
 
-    list_filter = ("name",)
+    search_fields = ("name",)
     list_display = ("name", "color")
 
 

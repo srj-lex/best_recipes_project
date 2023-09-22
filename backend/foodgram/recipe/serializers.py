@@ -99,17 +99,19 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get("request")
-        if request is None or request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(recipe=obj, user=request.user).exists()
+        if request and request.user.is_authenticated:
+            return Favorite.objects.filter(
+                recipe=obj, user=request.user
+            ).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get("request")
-        if request is None or request.user.is_anonymous:
-            return False
-        return ShoppingCart.objects.filter(
-            recipe=obj, user=request.user
-        ).exists()
+        if request and request.user.is_authenticated:
+            return ShoppingCart.objects.filter(
+                recipe=obj, user=request.user
+            ).exists()
+        return False
 
 
 class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
@@ -172,16 +174,33 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         if "ingredients" in validated_data:
             ingredients = validated_data.pop("ingredients")
+            IngredientForRecipe.objects.filter(
+                recipe=instance,
+            ).delete()
             for ingredient in ingredients:
-                IngredientForRecipe.objects.update_or_create(
+                IngredientForRecipe.objects.create(
                     recipe=instance,
                     ingredient=ingredient["ingredients"],
-                    defaults={"amount": ingredient["amount"]},
+                    amount=ingredient["amount"],
                 )
         return super().update(instance, validated_data)
 
-    def validate(self, attrs):
-        return super().validate(attrs)
+    def validate_tags(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError("Теги должны быть уникальными!")
+        return value
+
+    def validate_ingredients(self, value):
+        ingredients = [ingredient.get("ingredients") for ingredient in value]
+        if len(ingredients) == 0:
+            raise serializers.ValidationError(
+                "В рецепте должен быть хотя бы 1 ингредиент!"
+            )
+        if len(ingredients) != len(set(ingredients)):
+            raise serializers.ValidationError(
+                "Ингредиенты должны быть уникальными!"
+            )
+        return value
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
