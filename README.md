@@ -4,10 +4,6 @@
 
 https://best.recipes.mooo.com/
 
-reviewer@check.com - email
-
-check_review!007 - password
-
 ### Описание
 
 Веб-приложение для людей, которые хотят поделиться с миром своими уникальными рецептами.
