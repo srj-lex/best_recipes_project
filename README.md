@@ -17,6 +17,8 @@ https://best.recipes.mooo.com/
   
 - Webserver - NGINX.
 
+- Database - PostgreDB.
+
 ### Примеры API
 
 Подробная документация по всем эндпоинтам доступна после запуска проекта
