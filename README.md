@@ -1,8 +1,6 @@
 # Продуктовый помощник
 
-158.160.0.180
-
-https://best.recipes.mooo.com/
+Должен быть доступен по адресу: https://best.recipes.mooo.com/
 
 ### Описание
 
